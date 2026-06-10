@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Quest Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f0;
+    --bg3: #eeecea;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --purple-bg: #EEEDFE;
+    --purple-text: #3C3489;
+    --purple-border: #AFA9EC;
+    --teal-bg: #E1F5EE;
+    --teal-text: #085041;
+    --teal-border: #5DCAA5;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg2: #252523;
+      --bg3: #2e2e2b;
+      --text: #f0ede8;
+      --text2: #9a9994;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --purple-bg: #26215C;
+      --purple-text: #CECBF6;
+      --purple-border: #534AB7;
+      --teal-bg: #04342C;
+      --teal-text: #9FE1CB;
+      --teal-border: #0F6E56;
+    }
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 640px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  header p { font-size: 14px; color: var(--text2); }
+
+  .tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    background: var(--bg2);
+    padding: 5px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: background .15s, color .15s;
+  }
+  .tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .week-header {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-bottom: 1rem;
+  }
+
+  label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 5px; }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color .15s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: #7F77DD; }
+  textarea { resize: vertical; min-height: 72px; }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    transition: background .15s;
+  }
+  .btn:hover { background: var(--bg2); }
+  .btn-primary { background: var(--bg2); }
+  .btn-danger { color: #A32D2D; border-color: rgba(224,75,74,0.35); }
+  .btn-danger:hover { background: #FCEBEB; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    letter-spacing: .2px;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .badge-quest { background: var(--purple-bg); color: var(--purple-text); }
+  .badge-q { background: var(--teal-bg); color: var(--teal-text); }
+
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .item-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .item-left { display: flex; align-items: flex-start; gap: 0; flex: 1; }
+  .item-text { font-size: 14px; line-height: 1.5; }
+
+  .empty {
+    font-size: 14px;
+    color: var(--text2);
+    text-align: center;
+    padding: 2rem 0;
+  }
+  .empty-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+
+  /* countdown */
+  .countdown-box {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 1.25rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .countdown-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 14px; }
+  .countdown-digits {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .digit-block { text-align: center; }
+  .digit-num {
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    background: var(--bg2);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    min-width: 64px;
+    display: block;
+  }
+  .digit-unit { font-size: 11px; color: var(--text2); margin-top: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+  .digit-sep { font-size: 30px; font-weight: 300; color: var(--text2); align-self: center; padding-bottom: 18px; }
+
+  /* reveal */
+  .reveal-banner {
+    background: var(--purple-bg);
+    border: 0.5px solid var(--purple-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .reveal-banner .reveal-title { font-size: 18px; font-weight: 600; color: var(--purple-text); margin-bottom: 4px; }
+  .reveal-banner .reveal-sub { font-size: 13px; color: var(--purple-text); opacity: 0.8; }
+
+  .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin: 1.25rem 0 .75rem; padding-left: 2px; }
+
+  .lock-box {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text2);
+  }
+  .lock-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+  .lock-box h2 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .lock-box p { font-size: 14px; }
+
+  .save-notice {
+    font-size: 12px;
+    color: var(--text2);
+    text-align: center;
+    margin-top: .5rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🗺️ Weekly Quest Board</h1>
+    <p>Quests &amp; questions revealed at week's end</p>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('team')">👥 Team view</button>
+    <button class="tab" onclick="switchTab('admin')">⚙️ Admin</button>
+  </div>
+
+  <!-- TEAM VIEW -->
+  <div id="sec-team" class="section active">
+    <div id="countdown-box" class="countdown-box">
+      <div class="countdown-label">Week ends in</div>
+      <div class="countdown-digits">
+        <div class="digit-block">
+          <span class="digit-num" id="cd-d">00</span>
+          <div class="digit-unit">days</div>
+        </div>
+        <div class="digit-sep">:</div>
+        <div class="digit-block">
+          <span class="digit-num" id="cd-h">00</span>
+          <div class="digit-unit">hours</div>
+        </div>
+        <div class="digit-sep">:</div>
+        <div class="digit-block">
+          <span class="digit-num" id="cd-m">00</span>
+          <div class="digit-unit">min</div>
+        </div>
+        <div class="digit-sep">:</div>
+        <div class="digit-block">
+          <span class="digit-num" id="cd-s">00</span>
+          <div class="digit-unit">sec</div>
+        </div>
+      </div>
+    </div>
+    <div id="team-content"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="sec-admin" class="section">
+    <div class="card">
+      <div class="week-header">Week end schedule</div>
+      <div class="two-col">
+        <div>
+          <label>Day of week</label>
+          <select id="end-day">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6" selected>Saturday</option>
+          </select>
+        </div>
+        <div>
+          <label>Time</label>
+          <input type="time" id="end-time" value="23:59">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSchedule()">Save schedule</button>
+      <p class="save-notice" id="save-msg"></p>
+    </div>
+
+    <div class="card">
+      <div class="week-header">Add quest</div>
+      <label>Quest description</label>
+      <textarea id="new-quest" placeholder="e.g. Help a teammate with something they're stuck on this week"></textarea>
+      <button class="btn btn-primary" onclick="addItem('quest')">+ Add quest</button>
+    </div>
+
+    <div class="card">
+      <div class="week-header">Add question</div>
+      <label>Question</label>
+      <textarea id="new-question" placeholder="e.g. What's one thing you learned this week?"></textarea>
+      <button class="btn btn-primary" onclick="addItem('question')">+ Add question</button>
+    </div>
+
+    <div class="card">
+      <div class="week-header">Queued items <span id="queue-count" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2)"></span></div>
+      <div id="queue-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'wqb_state_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { items: [], endDay: 6, endHour: 23, endMin: 59 };
+}
+
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+const state = loadState();
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='team')||(i===1&&t==='admin')));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+t).classList.add('active');
+  if (t === 'admin') {
+    document.getElementById('end-day').value = state.endDay;
+    document.getElementById('end-time').value = String(state.endHour).padStart(2,'0')+':'+String(state.endMin).padStart(2,'0');
+    renderQueue();
+  }
+}
+
+function saveSchedule() {
+  state.endDay = parseInt(document.getElementById('end-day').value);
+  const t = document.getElementById('end-time').value.split(':');
+  state.endHour = parseInt(t[0]);
+  state.endMin = parseInt(t[1]);
+  saveState();
+  const msg = document.getElementById('save-msg');
+  msg.textContent = '✓ Schedule saved';
+  setTimeout(() => msg.textContent = '', 2500);
+}
+
+function addItem(type) {
+  const el = document.getElementById(type==='quest'?'new-quest':'new-question');
+  const val = el.value.trim();
+  if (!val) return;
+  state.items.push({ type, text: val, id: Date.now() });
+  el.value = '';
+  saveState();
+  renderQueue();
+}
+
+function removeItem(id) {
+  state.items = state.items.filter(i => i.id !== id);
+  saveState();
+  renderQueue();
+}
+
+function renderQueue() {
+  const el = document.getElementById('queue-list');
+  const count = document.getElementById('queue-count');
+  count.textContent = state.items.length ? `(${state.items.length})` : '';
+  if (!state.items.length) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">📋</span>No items yet — add quests and questions above.</div>';
+    return;
+  }
+  el.innerHTML = state.items.map(item => `
+    <div class="item-row">
+      <div class="item-left">
+        <span class="badge ${item.type==='quest'?'badge-quest':'badge-q'}">${item.type==='quest'?'Quest':'Question'}</span>
+        <span class="item-text">${escHtml(item.text)}</span>
+      </div>
+      <button class="btn btn-danger" style="font-size:13px;padding:5px 11px" onclick="removeItem(${item.id})" aria-label="Remove item">✕</button>
+    </div>`).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getNextEnd() {
+  const now = new Date();
+  const d = new Date(now);
+  let diff = state.endDay - d.getDay();
+  if (diff < 0) diff += 7;
+  d.setDate(d.getDate() + diff);
+  d.setHours(state.endHour, state.endMin, 59, 0);
+  if (d <= now) d.setDate(d.getDate() + 7);
+  return d;
+}
+
+function renderTeam() {
+  const now = new Date();
+  const end = getNextEnd();
+  const diff = end - now;
+  const revealed = diff <= 0;
+  const box = document.getElementById('countdown-box');
+  const content = document.getElementById('team-content');
+
+  if (!revealed) {
+    box.style.display = '';
+    const totalSec = Math.floor(diff / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hrs = Math.floor((totalSec % 86400) / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    document.getElementById('cd-d').textContent = String(days).padStart(2,'0');
+    document.getElementById('cd-h').textContent = String(hrs).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(mins).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(secs).padStart(2,'0');
+    content.innerHTML = `<div class="lock-box"><span class="lock-icon">🔒</span><h2>Not yet!</h2><p>Quests &amp; questions will be revealed when the week ends. Stay tuned!</p></div>`;
+  } else {
+    box.style.display = 'none';
+    if (!state.items.length) {
+      content.innerHTML = `<div class="reveal-banner"><div class="reveal-title">🎉 Week ended!</div><div class="reveal-sub">No items queued yet — ask your admin to add some.</div></div>`;
+      return;
+    }
+    const quests = state.items.filter(i => i.type === 'quest');
+    const qs = state.items.filter(i => i.type === 'question');
+    let html = `<div class="reveal-banner"><div class="reveal-title">🎉 New week, new adventures!</div><div class="reveal-sub">Here are this week's quests and questions</div></div>`;
+    if (quests.length) {
+      html += `<div class="section-title">⚔️ This week's quests</div>`;
+      html += quests.map(q => `<div class="card item-row" style="margin-bottom:.75rem"><span class="badge badge-quest" style="margin-top:2px">Quest</span><span class="item-text">${escHtml(q.text)}</span></div>`).join('');
+    }
+    if (qs.length) {
+      html += `<div class="section-title">💬 This week's questions</div>`;
+      html += qs.map(q => `<div class="card item-row" style="margin-bottom:.75rem"><span class="badge badge-q" style="margin-top:2px">Question</span><span class="item-text">${escHtml(q.text)}</span></div>`).join('');
+    }
+    content.innerHTML = html;
+  }
+}
+
+renderTeam();
+renderQueue();
+setInterval(renderTeam, 1000);
+</script>
+</body>
+</html>
